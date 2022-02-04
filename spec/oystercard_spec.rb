@@ -19,7 +19,7 @@ describe Oystercard do
   it 'stores the entry station' do
     subject.top_up(50)
     subject.touch_in(:entry_station)
-    expect(subject.entry_station).to eq :entry_station
+    expect(subject.journey[:entry_station]).to eq :entry_station
     end 
   # end
 
@@ -67,46 +67,66 @@ describe Oystercard do
     end
 
     it "has an empty list of journeys by default" do
-      expect(subject.journeys).to be_empty
+      expect(subject.journeys_list).to be_empty
     end
+
+    describe "#touch_out" do
+
+      it "deducts minimum fare upon touching out" do
+        minimum = Oystercard::MINIMUM
+        subject.top_up(25)
+        subject.touch_in(:entry_station)
+        expect { subject.touch_out(:exit_station) }.to change { subject.balance }.by -minimum
+      end
+    end
+
+  context "Complete journeys" do
+
+    describe "#journeys_list" do
 
     let(:journey){ {entry_station: entry_station, exit_station: exit_station} }
     it "stores a journey" do
       subject.top_up(25)
       subject.touch_in(entry_station) 
       subject.touch_out(exit_station)
-      expect(subject.journeys).to include journey
+      expect(subject.journeys_list).to include journey
     end
   end
 
-  describe "#touch_out" do
+    describe "#journey" do
 
     it "Set entry_station to nil if the card has been touched out" do
-      expect(subject.touch_out(@entry_station)).to eq nil
+      expect(subject.journey[:exit_station]).to eq nil
     end
+  end
 
-    it "deducts minimum fare upon touching out" do
-      minimum = Oystercard::MINIMUM
-      subject.top_up(25)
-      subject.touch_in(:entry_station)
-      expect { subject.touch_out(:exit_station) }.to change { subject.balance }.by -minimum
-    end
+    describe "#journey" do
 
     it "should record the exit station upon touch_out" do
       # minimum = Oystercard::MINIMUM
       subject.top_up(25)
       subject.touch_in(:entry_station)
       # subject.entry_station
-      # subject.touch_out(:exit_station)
+      subject.touch_out(:exit_station)
       # subject.deduct(1)
-      expect(subject.touch_out(:exit_station)).to eq :exit_station
+      expect(subject.journey[:exit_station]).to eq :exit_station
     end
-
-    # it "shuould record a list of exit stations upon touch_out" do
-    # end
-
-
   end
 
-  
+describe "#journey" do
+
+    it "should record the exit station upon touch_out" do
+      # minimum = Oystercard::MINIMUM
+      subject.top_up(25)
+      subject.touch_in(:entry_station)
+      # subject.entry_station
+      subject.touch_out(:exit_station)
+      # subject.deduct(1)
+      expect(subject.journey[:exit_station]).to eq :exit_station
+    end
+  end
+    # it "shuould record a list of exit stations upon touch_out" do
+    # end
+    end
+  end 
 end
